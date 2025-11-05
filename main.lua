@@ -39,12 +39,12 @@ function love.update(dt)
         menu.Navigate()
         menu.Update()
     elseif menu.transition_finished == false then
-        _G.game = ReturnGame()
+        _G.game = ReturnGame(menu.song)
         print("initialising")
         game.Init()
         menu.transition_finished = true
     else
-        game.Update()
+        game.Update(dt)
     end
 
 
@@ -56,7 +56,6 @@ end
 
 function love.draw()
     -- Testing
-    love.graphics.setColor(1,1,1,1)
 
 
     if menu.current_scene == "main" or menu.current_scene == "settings" then
@@ -72,7 +71,7 @@ function love.draw()
     if opacity_loading_screen > 0 then
         love.graphics.setColor(0,0,0,opacity_loading_screen)
         love.graphics.rectangle("fill", 0, 0, RES.x, RES.y)
-        love.graphics.setColor(1,1,1,1)
+        love.graphics.setColor(menu.song.average_colour:unpack())
     end
 end
 

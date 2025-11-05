@@ -1,3 +1,5 @@
+_G.stats = require("libs.stats.stats")
+
 function ReturnMenu()
     local menu = {}
     menu.current_scene = "main"
@@ -12,13 +14,38 @@ function ReturnMenu()
         end
     end
 
+    menu.GetAverageImageColour = function (cover_image_path)
+        local cover = love.image.newImageData(cover_image_path)
+        local red={}
+        local green={}
+        local blue={}
+
+        local function ReturnPixelData(x,y,r,g,b,a)
+            table.insert(red, r)
+            table.insert(green, g)
+            table.insert(blue, b)
+            return r,g,b,a
+        end
+        
+        cover:mapPixel(ReturnPixelData)
+        return colour.new(Mean(red),Mean(green),Mean(blue),1)
+    end
+
+    menu.UpdateSelectedSong = function ()
+        menu.song.average_colour = (menu.GetAverageImageColour((song_list[menu.selected_song].folder_path).."/cover.png")*1.5)
+        love.graphics.setColor(menu.song.average_colour:unpack())
+        love.graphics.setBackgroundColor((menu.song.average_colour*0.5):unpack())
+        menu.song.cover = love.graphics.newImage((song_list[menu.selected_song].folder_path).."/cover.png")
+        menu.song.decoder = love.sound.newDecoder((song_list[menu.selected_song].folder_path).."/song.wav")
+        menu.song.path = (song_list[menu.selected_song].folder_path)
+        menu.song.queueableSource = love.audio.newQueueableSource(menu.song.decoder:getSampleRate(), menu.song.decoder:getBitDepth(), menu.song.decoder:getChannelCount())
+        menu.BufferSong()
+        menu.song.queueableSource:play()
+    end
+
     menu.selected_song = 1
     menu.song = {}
-    menu.song.cover = love.graphics.newImage((menu.song_list[menu.selected_song].folder_path).."/cover.png")
-    menu.song.decoder = love.sound.newDecoder((menu.song_list[menu.selected_song].folder_path).."/song.wav")
-    menu.song.queueableSource = love.audio.newQueueableSource(menu.song.decoder:getSampleRate(), menu.song.decoder:getBitDepth(), menu.song.decoder:getChannelCount())
-    menu.BufferSong()
-    menu.song.queueableSource:play()
+    menu.UpdateSelectedSong()
 
     function menu.Update()
         menu.BufferSong()
@@ -42,8 +69,10 @@ function ReturnMenu()
             love.graphics.printf("Previous song", LIGHT_FONT, up_pos.x, up_pos.y, 9999, "left", 0, 0.7, 0.7, 175, -60)
 
             -- Album cover
-            local cover_zoom = 0.25
+            local cover_zoom = 0.25 / (menu.song.cover:getWidth()/1080)
+            love.graphics.setColor(1,1,1,1)
             love.graphics.draw(menu.song.cover, 25, 25, 0, cover_zoom, cover_zoom)
+            love.graphics.setColor(menu.song.average_colour:unpack())
 
             -- Title
             local name_limit = string.sub(song_list[menu.selected_song].song_info["title"], 1, math.min(#(song_list[menu.selected_song].song_info["title"]),10))
@@ -106,11 +135,7 @@ function ReturnMenu()
                             menu.selected_song = #song_list
                         end
                         menu.song.queueableSource:stop()
-                        menu.song.cover = love.graphics.newImage((song_list[menu.selected_song].folder_path).."/cover.png")
-                        menu.song.decoder = love.sound.newDecoder((song_list[menu.selected_song].folder_path).."/song.wav")
-                        menu.song.queueableSource = love.audio.newQueueableSource(menu.song.decoder:getSampleRate(), menu.song.decoder:getBitDepth(), menu.song.decoder:getChannelCount())
-                        menu.BufferSong()
-                        menu.song.queueableSource:play()
+                        menu.UpdateSelectedSong()
                     end
 
                     if key == "down" then
@@ -119,11 +144,7 @@ function ReturnMenu()
                             menu.selected_song = 1
                         end
                         menu.song.queueableSource:stop()
-                        menu.song.cover = love.graphics.newImage((song_list[menu.selected_song].folder_path).."/cover.png")
-                        menu.song.decoder = love.sound.newDecoder((song_list[menu.selected_song].folder_path).."/song.wav")
-                        menu.song.queueableSource = love.audio.newQueueableSource(menu.song.decoder:getSampleRate(), menu.song.decoder:getBitDepth(), menu.song.decoder:getChannelCount())
-                        menu.BufferSong()
-                        menu.song.queueableSource:play()
+                        menu.UpdateSelectedSong()
                     end
 
                 end
@@ -133,10 +154,7 @@ function ReturnMenu()
                 for _,key in pairs(key_presses_frame) do
                     if key == "left" then
                         menu.current_scene = "main"
-                        menu.song.decoder = love.sound.newDecoder((song_list[menu.selected_song].folder_path).."/song.wav")
-                        menu.song.queueableSource = love.audio.newQueueableSource(menu.song.decoder:getSampleRate(), menu.song.decoder:getBitDepth(), menu.song.decoder:getChannelCount())
-                        menu.BufferSong()
-                        menu.song.queueableSource:play()
+                        menu.UpdateSelectedSong()
                     end
                 end
             end
