@@ -1,0 +1,10 @@
+{
+    "Lua.diagnostics.globals": [
+        "love",
+        "vector",
+        "game",
+        "background",
+        "foreground",
+        "opacity_loading_screen"
+    ]
+}
