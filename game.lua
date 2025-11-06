@@ -15,7 +15,7 @@ function ReturnGame(song)
             game.song.queueableSource = love.audio.newQueueableSource(game.song.decoder:getSampleRate(), game.song.decoder:getBitDepth(), game.song.decoder:getChannelCount())
         else
             game.song = {}
-            game.song.decoder = love.sound.newDecoder(menu.song.path.."/song.wav")
+            game.song.decoder = love.sound.newDecoder((song_list[menu.selected_song].folder_path)..menu.song.file_extension)
             game.song.queueableSource = love.audio.newQueueableSource(game.song.decoder:getSampleRate(), game.song.decoder:getBitDepth(), game.song.decoder:getChannelCount())
             
             love.graphics.setColor(song.average_colour:unpack())
@@ -64,25 +64,28 @@ function ReturnGame(song)
     game.ProgressEnemies = function (dt)
         if #game.enemy_storage > 0 then
             for index,enemy in pairs(game.enemy_storage) do
-                print("updating enemy")
-                enemy.Update(dt)
+                --print("updating enemy")
+                --enemy.Update(dt)
             end
         end
     end
 
 
     game.GetEnemiesDueSpawning = function ()
-        if math.floor(love.timer.getTime()) % 5 == 0 then
-            if #game.enemy_storage < 1 then
-                print("making eneym")
-                table.insert(game.enemy_storage, ReturnEnemy())
-            end
+        if #game.enemy_storage < 1 then
+            print("making eneym")
+            table.insert(game.enemy_storage, ReturnEnemy("u", 0.1, 3))
+            table.insert(game.enemy_storage, ReturnEnemy("d", 0.1, 3))
+            table.insert(game.enemy_storage, ReturnEnemy("l", 0.1, 3))
+            table.insert(game.enemy_storage, ReturnEnemy("r", 0.1, 3))
+            table.insert(game.enemy_storage, ReturnEnemy("u", 0.1, 4))
+            table.insert(game.enemy_storage, ReturnEnemy("u", 0.1, 5))
+            table.insert(game.enemy_storage, ReturnEnemy("u", 0.1, 6))
         end
     end
 
     game.RenderEnemies = function ()
         if #game.enemy_storage > 0 then
-            print("rendering")
             for index,enemy in pairs(game.enemy_storage) do
                 enemy.Render()
             end

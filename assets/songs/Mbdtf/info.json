@@ -1,10 +1,9 @@
-
 {
-    "title": "Alright2",
-    "artist": "Kendrick Lamar",
-    "album": "To Pimp a Butterfly",
-    "releaseDate": "2015-03-15",
-    "genre": ["Hip Hop", "Jazz Rap"],
-    "duration": "3:39",
-    "AI-GEN" : "info.json (this file) was generated based on publicly available information about the song 'Alright' by Kendrick Lamar by an AI language model."
+    "title": "Gorgeous",
+    "artist": "Kanye West",
+    "album": "My Beautiful Dark Twisted Fantasy",
+    "releaseDate": "2010-11-22",
+    "genre": ["Hip Hop", "Progressive Rap"],
+    "duration": "5:57",
+    "AI-GEN" : "info.json (this file) was generated based on publicly available information about the song 'Gorgeous' by Kanye West by an AI language model."
 }

@@ -36,11 +36,17 @@ function ReturnMenu()
         love.graphics.setColor(menu.song.average_colour:unpack())
         love.graphics.setBackgroundColor((menu.song.average_colour*0.5):unpack())
         menu.song.cover = love.graphics.newImage((song_list[menu.selected_song].folder_path).."/cover.png")
-        menu.song.decoder = love.sound.newDecoder((song_list[menu.selected_song].folder_path).."/song.wav")
+
+        -- Check extension mp3 exists before moving onto wav
+        menu.song.file_extension = "/song.mp3"
+        local testing_file = io.open((song_list[menu.selected_song].folder_path)..menu.song.file_extension)
+        if not testing_file then menu.song.file_extension = "/song.wav" end
+        if testing_file ~= nil then testing_file:close() end
+
+        menu.song.decoder = love.sound.newDecoder((song_list[menu.selected_song].folder_path)..menu.song.file_extension)
         menu.song.path = (song_list[menu.selected_song].folder_path)
         menu.song.queueableSource = love.audio.newQueueableSource(menu.song.decoder:getSampleRate(), menu.song.decoder:getBitDepth(), menu.song.decoder:getChannelCount())
         menu.BufferSong()
-        menu.song.queueableSource:play()
     end
 
     menu.selected_song = 1
@@ -126,6 +132,7 @@ function ReturnMenu()
                     if key == "right" then
                         menu.current_scene = "transition"
                         menu.song.queueableSource:stop()
+                        menu.UpdateSelectedSong()
                         
                     end
 
@@ -136,6 +143,7 @@ function ReturnMenu()
                         end
                         menu.song.queueableSource:stop()
                         menu.UpdateSelectedSong()
+                        menu.song.queueableSource:play()
                     end
 
                     if key == "down" then
@@ -145,6 +153,7 @@ function ReturnMenu()
                         end
                         menu.song.queueableSource:stop()
                         menu.UpdateSelectedSong()
+                        menu.song.queueableSource:play()
                     end
 
                 end
@@ -155,6 +164,7 @@ function ReturnMenu()
                     if key == "left" then
                         menu.current_scene = "main"
                         menu.UpdateSelectedSong()
+                        menu.song.queueableSource:play()
                     end
                 end
             end

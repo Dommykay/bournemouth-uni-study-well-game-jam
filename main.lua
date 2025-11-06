@@ -66,6 +66,7 @@ function love.draw()
         game.Render()
     end
 
+    love.graphics.print(math.floor(love.timer.getTime()), 0, 0, 0)
 
 
     if opacity_loading_screen > 0 then
