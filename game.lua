@@ -20,8 +20,17 @@ function ReturnGame(song)
             
             love.graphics.setColor(song.average_colour:unpack())
         end
-        game.StartSong()
+        game.time_started = love.timer.getTime()
+        game.song_started = false -- This is probably more efficient than checking if it actually is playing thru the love module? ion kno
         game.enemy_storage = {}
+        -- Looks weird but will be more efficient this way as i want to only look at the closest thing in a certain direction.
+        game.enemy_storage.up = {}
+        game.enemy_storage.down = {}
+        game.enemy_storage.left = {}
+        game.enemy_storage.right = {}
+
+        game.score = 0
+        game.perfect_streak = 0
     end
 
 
@@ -36,6 +45,7 @@ function ReturnGame(song)
     game.StartSong = function ()
         game.BufferSong()
         game.song.queueableSource:play()
+        game.song_started = true
     end
 
     game.Update = function (dt)
@@ -72,24 +82,120 @@ function ReturnGame(song)
 
 
     game.GetEnemiesDueSpawning = function ()
-        if #game.enemy_storage < 1 then
+        if (#game.enemy_storage.up + #game.enemy_storage.down + #game.enemy_storage.left + #game.enemy_storage.right) < 1 then
             print("making eneym")
-            table.insert(game.enemy_storage, ReturnEnemy("u", 0.1, 3))
-            table.insert(game.enemy_storage, ReturnEnemy("d", 0.1, 3))
-            table.insert(game.enemy_storage, ReturnEnemy("l", 0.1, 3))
-            table.insert(game.enemy_storage, ReturnEnemy("r", 0.1, 3))
-            table.insert(game.enemy_storage, ReturnEnemy("u", 0.1, 4))
-            table.insert(game.enemy_storage, ReturnEnemy("u", 0.1, 5))
-            table.insert(game.enemy_storage, ReturnEnemy("u", 0.1, 6))
+            for i=1,100 do
+                table.insert(game.enemy_storage.up, ReturnEnemy("u", 0.1, i+5))
+            end
+            table.insert(game.enemy_storage.up, ReturnEnemy("u", 0.1, 3))
+            table.insert(game.enemy_storage.down, ReturnEnemy("d", 0.1, 3))
+            table.insert(game.enemy_storage.left, ReturnEnemy("l", 0.1, 3))
+            table.insert(game.enemy_storage.right, ReturnEnemy("r", 0.1, 3))
+            table.insert(game.enemy_storage.up, ReturnEnemy("u", 0.1, 4))
+            table.insert(game.enemy_storage.up, ReturnEnemy("u", 0.1, 5))
+            table.insert(game.enemy_storage.up, ReturnEnemy("u", 0.1, 6))
         end
     end
 
     game.RenderEnemies = function ()
-        if #game.enemy_storage > 0 then
-            for index,enemy in pairs(game.enemy_storage) do
+        if #game.enemy_storage.up > 0 then
+            for index,enemy in pairs(game.enemy_storage.up) do
+                enemy.Render()
+            end
+        end
+        if #game.enemy_storage.down > 0 then
+            for index,enemy in pairs(game.enemy_storage.down) do
+                enemy.Render()
+            end
+        end
+        if #game.enemy_storage.left > 0 then
+            for index,enemy in pairs(game.enemy_storage.left) do
+                enemy.Render()
+            end
+        end
+        if #game.enemy_storage.right > 0 then
+            for index,enemy in pairs(game.enemy_storage.right) do
                 enemy.Render()
             end
         end 
+    end
+
+    game.CheckHitEnemies = function (direction)
+
+        if direction == "d" then
+            if #game.enemy_storage.down > 0 then
+                for index,enemy in pairs(game.enemy_storage.down) do
+                    local result = game.enemy_storage.down[index].CheckHit()
+                    if result == "miss" then
+                        game.perfect_streak = 0
+                    elseif result == "good" then
+                        game.score = game.score + 100
+                        game.perfect_streak = 0
+                    elseif result == "great" then
+                        game.score = game.score + (500*(game.perfect_streak+1))
+                    else
+                        game.score = game.score + (1000*(game.perfect_streak+1))
+                        game.perfect_streak = game.perfect_streak + 1
+                    end
+                    break -- Only do it for the first one, apparently this is the best way to do it
+                end
+            end 
+        elseif direction == "l" then
+            if #game.enemy_storage.left > 0 then
+                for index,enemy in pairs(game.enemy_storage.left) do
+                    local result = game.enemy_storage.left[index].CheckHit()
+                    if result == "miss" then
+                        game.perfect_streak = 0
+                    elseif result == "good" then
+                        game.score = game.score + 100
+                        game.perfect_streak = 0
+                    elseif result == "great" then
+                        game.score = game.score + (500*(game.perfect_streak+1))
+                    else
+                        game.score = game.score + (1000*(game.perfect_streak+1))
+                        game.perfect_streak = game.perfect_streak + 1
+                    end
+                    break
+                end
+            end
+        elseif direction == "r" then
+            if #game.enemy_storage.right > 0 then
+                for index,enemy in pairs(game.enemy_storage.right) do
+                    local result = game.enemy_storage.right[index].CheckHit()
+                    if result == "miss" then
+                        game.perfect_streak = 0
+                    elseif result == "good" then
+                        game.score = game.score + 100
+                        game.perfect_streak = 0
+                    elseif result == "great" then
+                        game.score = game.score + (500*(game.perfect_streak+1))
+                    else
+                        game.score = game.score + (1000*(game.perfect_streak+1))
+                        game.perfect_streak = game.perfect_streak + 1
+                    end
+                    break
+                end
+            end
+        else
+            if #game.enemy_storage.up > 0 then
+                for index,enemy in pairs(game.enemy_storage.up) do
+                    local result = game.enemy_storage.up[index].CheckHit()
+                    if result == "miss" then
+                        game.perfect_streak = 0
+                    elseif result == "good" then
+                        game.score = game.score + 100
+                        game.perfect_streak = 0
+                    elseif result == "great" then
+                        game.score = game.score + (500*(game.perfect_streak+1))
+                    else
+                        game.score = game.score + (1000*(game.perfect_streak+1))
+                        game.perfect_streak = game.perfect_streak + 1
+                    end
+                    break
+                end
+            end
+        end
+            
     end
 
     -- GENERATED BY GOOGLE GEMINI AI 
@@ -136,7 +242,15 @@ function ReturnGame(song)
                     local newEnemyObject = ReturnEnemy(enemy.dir, enemy.dmg, totalSpawnTime)
                     
                     -- 8. Insert the new enemy into the global storage list
-                    table.insert(game.enemy_storage, newEnemyObject)
+                    if enemy.dir == "u" then
+                        table.insert(game.enemy_storage.up, newEnemyObject)
+                    elseif enemy.dir == "d" then
+                        table.insert(game.enemy_storage.down, newEnemyObject)
+                    elseif enemy.dir == "l" then
+                        table.insert(game.enemy_storage.left, newEnemyObject)
+                    else
+                        table.insert(game.enemy_storage.right, newEnemyObject)
+                    end
                 end
             end
         end

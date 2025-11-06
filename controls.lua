@@ -23,3 +23,19 @@ function love.keypressed(key, scancode, isrepeat)
     end
 
 end
+
+function love.mousepressed(x, y, button, isTouch)
+    -- Add key presses since table last flushed (mouse edition)
+    local in_table = false
+    if #key_presses_frame > 0 then
+        for _,table_key in pairs(key_presses_frame) do
+            if button == table_key then
+                in_table = true
+            end
+        end
+    end
+    if not in_table then
+        table.insert(key_presses_frame, button)
+    end
+
+end

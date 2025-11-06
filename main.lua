@@ -45,9 +45,11 @@ function love.update(dt)
         menu.transition_finished = true
     else
         game.Update(dt)
+
+        if not game.song_started and love.timer.getTime() >= (game.time_started+3) then
+            game.StartSong()
+        end
     end
-
-
 
 
     -- Clear key_presses_frame of inputs at end of frame
@@ -58,15 +60,13 @@ function love.draw()
     -- Testing
 
 
-    if menu.current_scene == "main" or menu.current_scene == "settings" then
-        menu.Render()
-    elseif menu.transition_finished == false then
+    if menu.current_scene == "main" or menu.current_scene == "settings" or menu.transition_finished == false then
         menu.Render()
     else
         game.Render()
     end
 
-    love.graphics.print(math.floor(love.timer.getTime()), 0, 0, 0)
+    --love.graphics.print(math.floor(love.timer.getTime()), 0, 0, 0) --DEBUG
 
 
     if opacity_loading_screen > 0 then

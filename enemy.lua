@@ -14,26 +14,27 @@ function ReturnEnemy(direction, damage, time)
     enemy.damage = damage
     enemy.size = 5
     enemy.current_position = function() enemy.position_tween.ReturnValue() end
+    enemy.marked_for_death = false
 
     if direction == "d" then
         enemy.starting_position = (RES/2) + vector.new(0,centre_distance)
         enemy.texture = love.graphics.newImage("assets/textures/enemies/down_enemy.png")
-        enemy.position_tween = CreateTweenVector(enemy.starting_position, button_positions.down, time, time-3, "linear")
+        enemy.position_tween = CreateTweenVector(enemy.starting_position, button_positions.down, 3, time-3, "root")
 
     elseif direction == "l" then
         enemy.starting_position = (RES/2) + vector.new(-centre_distance,0)
         enemy.texture = love.graphics.newImage("assets/textures/enemies/left_enemy.png")
-        enemy.position_tween = CreateTweenVector(enemy.starting_position, button_positions.left, time, time-3, "linear")
+        enemy.position_tween = CreateTweenVector(enemy.starting_position, button_positions.left, 3, time-3, "root")
         
     elseif direction == "r" then
         enemy.starting_position = (RES/2) + vector.new(centre_distance,0)
         enemy.texture = love.graphics.newImage("assets/textures/enemies/right_enemy.png")
-        enemy.position_tween = CreateTweenVector(enemy.starting_position, button_positions.right, time, time-3, "linear")
+        enemy.position_tween = CreateTweenVector(enemy.starting_position, button_positions.right, 3, time-3, "root")
         
     else -- Assume U direction
         enemy.starting_position = (RES/2) + vector.new(0,-centre_distance)
         enemy.texture = love.graphics.newImage("assets/textures/enemies/up_enemy.png")
-        enemy.position_tween = CreateTweenVector(enemy.starting_position, button_positions.up, time, time-3, "linear")
+        enemy.position_tween = CreateTweenVector(enemy.starting_position, button_positions.up, 3, time-3, "root")
     end
 
     enemy.Update = function (dt)
@@ -43,12 +44,27 @@ function ReturnEnemy(direction, damage, time)
 
     enemy.Render = function()
         local x, y = (enemy.position_tween.ReturnValue()):unpack()
-        print(enemy.position_tween.x.time_from_start(), enemy.position_tween.y.time_from_start())
+        local a, _ = (enemy.position_tween.ReturnProgress()):unpack()
+        local r,g,b,_ = menu.song.average_colour:unpack()
+        love.graphics.setColor(r,g,b,a)
         love.graphics.draw(enemy.texture, x, y, 0, enemy.size, enemy.size, enemy.texture:getWidth()/2, enemy.texture:getHeight()/2)
+        love.graphics.setColor(r,g,b,1)
     end
 
     enemy.CheckHit = function ()
+        local progress, _ = (enemy.position_tween.ReturnValue()):unpack()
         
+        if progress == 1 or progress < 0.95 then
+            return "miss"
+        elseif progress < 0.975 then
+            enemy.marked_for_death = true
+            return "good"
+        elseif progress < 0.985 then
+            enemy.marked_for_death = true
+            return "great"
+        end
+        enemy.marked_for_death = true
+        return "perfect"
     end
 
     return enemy
