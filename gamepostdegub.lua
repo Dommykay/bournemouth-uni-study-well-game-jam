@@ -5,6 +5,7 @@ _G.enemy = require("enemy")
 
 function ReturnGame(song)
     local game = {}
+    print("making game")
 
 
     game.Init = function ()
@@ -31,10 +32,8 @@ function ReturnGame(song)
         game.score = 0
         game.perfect_streak = 0
         game.player_health = 1
-        game.most_recent_slash = "miss"
 
         game.loadEnemiesFromLevel((song_list[menu.selected_song].folder_path).."/level.json")
-        
     end
 
 
@@ -42,9 +41,7 @@ function ReturnGame(song)
         local freeBufferCount = game.song.queueableSource:getFreeBufferCount()
         for i = 1, freeBufferCount do
             local soundData = game.song.decoder:decode()
-            if soundData then
-                game.song.queueableSource:queue(soundData)
-            end
+            game.song.queueableSource:queue(soundData)
         end
     end
 
@@ -61,9 +58,6 @@ function ReturnGame(song)
         game.EnemiesDamagePlayer()
         --game.LaserDamagePlayer()
 
-        if game.perfect_streak > menu.last_game.highest_streak then
-            menu.last_game.highest_streak = game.perfect_streak
-        end
     end
 
     game.Render = function ()
@@ -77,51 +71,7 @@ function ReturnGame(song)
         love.graphics.draw(left, left_pos.x, left_pos.y, 0, zoom, zoom, left:getWidth()/2,left:getHeight()/2)
         love.graphics.draw(right, right_pos.x, right_pos.y, 0, zoom, zoom, right:getWidth()/2,right:getHeight()/2)
 
-        game.DrawAppropriateScoreDecal()
-
-        love.graphics.printf("Health: "..math.floor(game.player_health*100).."%", LIGHT_FONT, RES.x/2, RES.y/2+50, 9999, "left", 0, 1, 1, 200, -60)
-
-        love.graphics.printf("Score: "..game.score, LIGHT_FONT, RES.x/2, RES.y/2+90, 9999, "left", 0, 1, 1, 200, -60)
-
         game.RenderEnemies()
-    end
-
-    game.DrawAppropriateScoreDecal = function ()
-
-        if game.most_recent_slash == "miss" then
-            return
-        end
-
-        if game.most_recent_slash == "good" then
-            love.graphics.draw(textures.score_displays.good, RES.x/2, RES.y/2, 0, 3, 3, textures.score_displays.good:getWidth()/2,textures.score_displays.good:getHeight()/2)
-            return
-        end
-
-        if game.most_recent_slash == "great" then
-            love.graphics.draw(textures.score_displays.great, RES.x/2, RES.y/2, 0, 3, 3, textures.score_displays.great:getWidth()/2,textures.score_displays.great:getHeight()/2)
-            return
-        end
-
-        if game.most_recent_slash == "perfect" then
-            if game.perfect_streak == 2 then
-                love.graphics.draw(textures.score_displays.x2, RES.x/2, RES.y/2-40, 0, 6, 6, textures.score_displays.x2:getWidth()/2,textures.score_displays.x2:getHeight()/2)
-            end
-            if game.perfect_streak == 3 then
-                love.graphics.draw(textures.score_displays.x3, RES.x/2, RES.y/2-40, 0, 6, 6, textures.score_displays.x3:getWidth()/2,textures.score_displays.x3:getHeight()/2)
-            end
-            if game.perfect_streak == 4 then
-                love.graphics.draw(textures.score_displays.x4, RES.x/2, RES.y/2-40, 0, 6, 6, textures.score_displays.x4:getWidth()/2,textures.score_displays.x4:getHeight()/2)
-            end
-            if game.perfect_streak == 5 then
-                love.graphics.draw(textures.score_displays.x5, RES.x/2, RES.y/2-40, 0, 6, 6, textures.score_displays.x5:getWidth()/2,textures.score_displays.x5:getHeight()/2)
-            end
-            if game.perfect_streak > 5 then
-                love.graphics.draw(textures.score_displays.amazing, RES.x/2, RES.y/2, 0, 3, 3, textures.score_displays.amazing:getWidth()/2,textures.score_displays.amazing:getHeight()/2)
-            else
-                love.graphics.draw(textures.score_displays.perfect, RES.x/2, RES.y/2, 0, 3, 3, textures.score_displays.perfect:getWidth()/2,textures.score_displays.perfect:getHeight()/2)
-            end
-        end
-
     end
 
 
@@ -130,8 +80,8 @@ function ReturnGame(song)
 
 
         if (#game.enemy_storage.up + #game.enemy_storage.down + #game.enemy_storage.left + #game.enemy_storage.right) < 1 then
-            for i=1,1000 do
-                table.insert(game.enemy_storage.up, ReturnEnemy("u", 0.1, i*0.5+5))
+            for i=1,100 do
+                table.insert(game.enemy_storage.up, ReturnEnemy("u", 0.1, i+5))
             end
             table.insert(game.enemy_storage.up, ReturnEnemy("u", 0.1, 3))
             table.insert(game.enemy_storage.down, ReturnEnemy("d", 0.1, 3))
@@ -171,100 +121,80 @@ function ReturnGame(song)
         if direction == "d" then
             if #game.enemy_storage.down > 0 then
                 for index,enemy in pairs(game.enemy_storage.down) do
-                    local progress, _ = (enemy.position_tween.ReturnProgress()):unpack()
-                    if progress > 0.93 then
-
-                        game.most_recent_slash = game.enemy_storage.down[index].CheckHit()
-                        if game.most_recent_slash == "miss" then
-                            game.perfect_streak = 0
-                        elseif game.most_recent_slash == "good" then
-                            game.score = game.score + 100
-                            game.perfect_streak = 0
-                            break
-                        elseif game.most_recent_slash == "great" then
-                            game.score = game.score + (500*(game.perfect_streak+1))
-                            break
-                        else
-                            game.score = game.score + (1000*(game.perfect_streak+1))
-                            game.perfect_streak = game.perfect_streak + 1
-                            break
-                        end
-
+                    local result = game.enemy_storage.down[index].CheckHit()
+                    if result == "miss" then
+                        game.perfect_streak = 0
+                    elseif result == "good" then
+                        game.score = game.score + 100
+                        game.perfect_streak = 0
+                        break
+                    elseif result == "great" then
+                        game.score = game.score + (500*(game.perfect_streak+1))
+                        break
+                    else
+                        game.score = game.score + (1000*(game.perfect_streak+1))
+                        game.perfect_streak = game.perfect_streak + 1
+                        break
                     end
                 end
             end 
         elseif direction == "l" then
             if #game.enemy_storage.left > 0 then
                 for index,enemy in pairs(game.enemy_storage.left) do
-                    local progress, _ = (enemy.position_tween.ReturnProgress()):unpack()
-                    if progress > 0.93 then
-
-                        game.most_recent_slash = game.enemy_storage.left[index].CheckHit()
-                        if game.most_recent_slash == "miss" then
-                            game.perfect_streak = 0
-                        elseif game.most_recent_slash == "good" then
-                            game.score = game.score + 100
-                            game.perfect_streak = 0
-                            break
-                        elseif game.most_recent_slash == "great" then
-                            game.score = game.score + (500*(game.perfect_streak+1))
-                            break
-                        else
-                            game.score = game.score + (1000*(game.perfect_streak+1))
-                            game.perfect_streak = game.perfect_streak + 1
-                            break
-                        end
-
+                    local result = game.enemy_storage.left[index].CheckHit()
+                    if result == "miss" then
+                        game.perfect_streak = 0
+                    elseif result == "good" then
+                        game.score = game.score + 100
+                        game.perfect_streak = 0
+                        break
+                    elseif result == "great" then
+                        game.score = game.score + (500*(game.perfect_streak+1))
+                        break
+                    else
+                        game.score = game.score + (1000*(game.perfect_streak+1))
+                        game.perfect_streak = game.perfect_streak + 1
+                        break
                     end
                 end
             end
         elseif direction == "r" then
             if #game.enemy_storage.right > 0 then
                 for index,enemy in pairs(game.enemy_storage.right) do
-                    local progress, _ = (enemy.position_tween.ReturnProgress()):unpack()
-                    if progress > 0.93 then
-
-                        game.most_recent_slash = game.enemy_storage.right[index].CheckHit()
-                        if game.most_recent_slash == "miss" then
-                            game.perfect_streak = 0
-                        elseif game.most_recent_slash == "good" then
-                            game.score = game.score + 100
-                            game.perfect_streak = 0
-                            break
-                        elseif game.most_recent_slash == "great" then
-                            game.score = game.score + (500*(game.perfect_streak+1))
-                            break
-                        else
-                            game.score = game.score + (1000*(game.perfect_streak+1))
-                            game.perfect_streak = game.perfect_streak + 1
-                            break
-                        end
-
+                    local result = game.enemy_storage.right[index].CheckHit()
+                    if result == "miss" then
+                        game.perfect_streak = 0
+                    elseif result == "good" then
+                        game.score = game.score + 100
+                        game.perfect_streak = 0
+                        break
+                    elseif result == "great" then
+                        game.score = game.score + (500*(game.perfect_streak+1))
+                        break
+                    else
+                        game.score = game.score + (1000*(game.perfect_streak+1))
+                        game.perfect_streak = game.perfect_streak + 1
+                        break
                     end
                 end
             end
         else
             if #game.enemy_storage.up > 0 then
                 for index,enemy in pairs(game.enemy_storage.up) do
-                    local progress, _ = (enemy.position_tween.ReturnProgress()):unpack()
-                    if progress > 0.93 then
-
-                        game.most_recent_slash = game.enemy_storage.up[index].CheckHit()
-                        if game.most_recent_slash == "miss" then
-                            game.perfect_streak = 0
-                        elseif game.most_recent_slash == "good" then
-                            game.score = game.score + 100
-                            game.perfect_streak = 0
-                            break
-                        elseif game.most_recent_slash == "great" then
-                            game.score = game.score + (500*(game.perfect_streak+1))
-                            break
-                        else
-                            game.score = game.score + (1000*(game.perfect_streak+1))
-                            game.perfect_streak = game.perfect_streak + 1
-                            break
-                        end
-
+                    local result = game.enemy_storage.up[index].CheckHit()
+                    if result == "miss" then
+                        game.perfect_streak = 0
+                    elseif result == "good" then
+                        game.score = game.score + 100
+                        game.perfect_streak = 0
+                        break
+                    elseif result == "great" then
+                        game.score = game.score + (500*(game.perfect_streak+1))
+                        break
+                    else
+                        game.score = game.score + (1000*(game.perfect_streak+1))
+                        game.perfect_streak = game.perfect_streak + 1
+                        break
                     end
                 end
             end
@@ -276,7 +206,7 @@ function ReturnGame(song)
 
         local up,down,left,right = keybinds.up(),keybinds.down(), keybinds.left(), keybinds.right()
         if keybinds.slash() then
-            print(true)
+            game.DebugPrintJson(up,down,left,right)
             if up then
                 game.CheckHitEnemies("u")
             end
@@ -289,8 +219,6 @@ function ReturnGame(song)
             if right then
                 game.CheckHitEnemies("r")
             end
-        else
-            print(false)
         end
         if #game.enemy_storage.up > 0 then
             for index,enemy in pairs(game.enemy_storage.up) do
@@ -337,7 +265,6 @@ function ReturnGame(song)
                     table.remove(game.enemy_storage.up, index)
                     game.player_health = game.player_health - enemy.damage/math.max(game.perfect_streak,1)
                     game.perfect_streak = 0
-                    game.most_recent_slash = "miss"
                 end
             end
         end
@@ -348,7 +275,6 @@ function ReturnGame(song)
                     table.remove(game.enemy_storage.down, index)
                     game.player_health = game.player_health - enemy.damage/math.max(game.perfect_streak,1)
                     game.perfect_streak = 0
-                    game.most_recent_slash = "miss"
                 end
             end
         end
@@ -359,7 +285,6 @@ function ReturnGame(song)
                     table.remove(game.enemy_storage.left, index)
                     game.player_health = game.player_health - enemy.damage/math.max(game.perfect_streak,1)
                     game.perfect_streak = 0
-                    game.most_recent_slash = "miss"
                 end
             end
         end
@@ -370,7 +295,6 @@ function ReturnGame(song)
                     table.remove(game.enemy_storage.right, index)
                     game.player_health = game.player_health - enemy.damage/math.max(game.perfect_streak,1)
                     game.perfect_streak = 0
-                    game.most_recent_slash = "miss"
                 end
             end
         end
@@ -380,6 +304,60 @@ function ReturnGame(song)
         if game.player_health < 1 then
             game.player_health = math.min(game.player_health + math.max(0.05*(game.perfect_streak - 2),0), 1)
         end
+    end
+
+    function game.DebugPrintJson(up,down,left,right)
+        local count = 0
+        if up then
+            count = count + 1
+        end
+        if down then
+            count = count + 1
+        end
+        if left then
+            count = count + 1
+        end
+        if right then
+            count = count + 1
+        end
+        local count_copy = count
+
+        print('"'..(love.timer.getTime() - game.time_started - 3.1)..'" : {')
+        print('    "enm" : {')
+        if up then
+            if count > 1 then
+                print('        "'..tostring(count_copy-(count-1))..'":{ "dir": "u", "dmg": "0.1", "time": "3" },')
+            else
+                print('        "'..tostring(count_copy-(count-1))..'":{ "dir": "u", "dmg": "0.1", "time": "3" }')
+            end
+            count = count - 1
+        end
+        if down then
+            if count > 1 then
+                print('        "'..tostring(count_copy-(count-1))..'":{ "dir": "d", "dmg": "0.1", "time": "3" },')
+            else
+                print('        "'..tostring(count_copy-(count-1))..'":{ "dir": "d", "dmg": "0.1", "time": "3" }')
+            end
+            count = count - 1
+        end
+        if left then
+            if count > 1 then
+                print('        "'..tostring(count_copy-(count-1))..'":{ "dir": "l", "dmg": "0.1", "time": "3" },')
+            else
+                print('        "'..tostring(count_copy-(count-1))..'":{ "dir": "l", "dmg": "0.1", "time": "3" }')
+            end
+            count = count - 1
+        end
+        if right then
+            if count > 1 then
+                print('        "'..tostring(count_copy-(count-1))..'":{ "dir": "r", "dmg": "0.1", "time": "3" },')
+            else
+                print('        "'..tostring(count_copy-(count-1))..'":{ "dir": "r", "dmg": "0.1", "time": "3" }')
+            end
+        end
+        print("    }")
+        print("},")
+
     end
 
     -- GENERATED BY GOOGLE GEMINI AI 
@@ -427,13 +405,13 @@ function ReturnGame(song)
                     
                     -- 8. Insert the new enemy into the global storage list
                     if enemy.dir == "u" then
-                        table.insert(game.enemy_storage.up, newEnemyObject)
+                        table.insert(game.enemy_storage.up, #game.enemy_storage.up + 1,newEnemyObject)
                     elseif enemy.dir == "d" then
-                        table.insert(game.enemy_storage.down, newEnemyObject)
+                        table.insert(game.enemy_storage.down, #game.enemy_storage.down + 1, newEnemyObject)
                     elseif enemy.dir == "l" then
-                        table.insert(game.enemy_storage.left, newEnemyObject)
+                        table.insert(game.enemy_storage.left, #game.enemy_storage.left + 1, newEnemyObject)
                     else
-                        table.insert(game.enemy_storage.right, newEnemyObject)
+                        table.insert(game.enemy_storage.right, #game.enemy_storage.right + 1, newEnemyObject)
                     end
                 end
             end
@@ -487,3 +465,25 @@ function ReturnGame(song)
 
     return game
 end
+
+
+
+
+
+
+
+
+Error
+
+game.lua:43: bad argument #1 to 'queue' (SoundData or lightuserdata expected, got nil)
+
+
+Traceback
+
+[love "callbacks.lua"]:228: in function 'handler'
+[C]: in function 'queue'
+game.lua:43: in function 'BufferSong'
+game.lua:54: in function 'Update'
+main.lua:47: in function 'update'
+[love "callbacks.lua"]:162: in function <[love "callbacks.lua"]:144>
+[C]: in function 'xpcall'

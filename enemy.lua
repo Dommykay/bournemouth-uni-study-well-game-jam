@@ -52,14 +52,14 @@ function ReturnEnemy(direction, damage, time)
     end
 
     enemy.CheckHit = function ()
-        local progress, _ = (enemy.position_tween.ReturnValue()):unpack()
+        local progress, _ = (enemy.position_tween.ReturnProgress()):unpack()
         
-        if progress == 1 or progress < 0.95 then
+        if progress < 0.96 then
             return "miss"
-        elseif progress < 0.975 then
+        elseif progress < 0.97 then
             enemy.marked_for_death = true
             return "good"
-        elseif progress < 0.985 then
+        elseif progress < 0.98 then
             enemy.marked_for_death = true
             return "great"
         end

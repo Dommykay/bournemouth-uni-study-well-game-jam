@@ -35,19 +35,40 @@ function love.update(dt)
     -- Only if loading in decrease opacity of loading screen
     if opacity_loading_screen > 0 then opacity_loading_screen = opacity_loading_screen - dt end
 
-    if menu.current_scene == "main" or menu.current_scene == "settings" then
+    if menu.current_scene == "main" or menu.current_scene == "settings" or menu.current_scene == "you won" or menu.current_scene == "game over" then
         menu.Navigate()
         menu.Update()
     elseif menu.transition_finished == false then
         _G.game = ReturnGame(menu.song)
-        print("initialising")
         game.Init()
+        menu.last_game.highest_streak = 0
         menu.transition_finished = true
     else
         game.Update(dt)
 
         if not game.song_started and love.timer.getTime() >= (game.time_started+3) then
             game.StartSong()
+        end
+
+        if menu.transition_finished == true then
+            if game.song_started and not game.song.queueableSource:isPlaying() then
+                print("stopping")
+                game.song.queueableSource:stop()
+                menu.current_scene = "you won"
+                menu.last_game.score = game.score
+                game = {}
+                menu.transition_finished = false
+            end
+        end
+
+        if menu.transition_finished == true then
+            if game and game.player_health <= 0 then
+                game.song.queueableSource:stop()
+                menu.current_scene = "game over"
+                menu.last_game.score = game.score
+                game = {}
+                menu.transition_finished = false
+            end
         end
     end
 
@@ -60,10 +81,13 @@ function love.draw()
     -- Testing
 
 
-    if menu.current_scene == "main" or menu.current_scene == "settings" or menu.transition_finished == false then
+    if menu.current_scene == "main" or menu.current_scene == "settings" or menu.current_scene == "you won" or menu.current_scene == "game over" or menu.transition_finished == false then
         menu.Render()
     else
         game.Render()
+        love.graphics.print(game.perfect_streak, 0, 0, 0)
+        love.graphics.print(game.score, 0, 20, 0)
+        love.graphics.print(game.player_health, 0, 40, 0)
     end
 
     --love.graphics.print(math.floor(love.timer.getTime()), 0, 0, 0) --DEBUG
@@ -83,7 +107,6 @@ end
 
 _G.UpdateButtonPositions = function()
     local quart_smallest_res = (math.min(RES.x,RES.y))/4
-    print(quart_smallest_res)
     local half_res = RES/2
     _G.button_positions = {}
     

@@ -6,6 +6,10 @@ function ReturnMenu()
     menu.song_list = song_list
     menu.transition_finished = false
 
+    menu.last_game = {}
+    menu.last_game.highest_streak = 0
+    menu.last_game.score = 0
+
     menu.BufferSong = function ()
         local freeBufferCount = menu.song.queueableSource:getFreeBufferCount()
         for i = 1, freeBufferCount do
@@ -52,6 +56,7 @@ function ReturnMenu()
     menu.selected_song = 1
     menu.song = {}
     menu.UpdateSelectedSong()
+    menu.song.queueableSource:play()
 
     function menu.Update()
         menu.BufferSong()
@@ -116,6 +121,62 @@ function ReturnMenu()
             love.graphics.printf("temp", LIGHT_FONT, up_pos.x, up_pos.y, 9999, "left", 0, 0.7, 0.7, 65, -60)
         end
 
+        if menu.current_scene == "you won" then
+            local zoom = 5
+            
+            love.graphics.printf("You win!", LIGHT_FONT, RES.x/2, RES.y/2, 9999, "left", 0, 1, 1, 100, 60)
+            love.graphics.printf("Highest streak: "..menu.last_game.highest_streak, LIGHT_FONT, RES.x/2, RES.y/2+50, 9999, "left", 0, 1, 1, 200, -20)
+            love.graphics.printf("Score: "..menu.last_game.score, LIGHT_FONT, RES.x/2, RES.y/2+90, 9999, "left", 0, 1, 1, 200, -60)
+
+            -- Album cover
+            local cover_zoom = 0.25 / (menu.song.cover:getWidth()/1080)
+            love.graphics.setColor(1,1,1,1)
+            love.graphics.draw(menu.song.cover, 25, 25, 0, cover_zoom, cover_zoom)
+            love.graphics.setColor(menu.song.average_colour:unpack())
+
+            -- Title
+            local name_limit = string.sub(song_list[menu.selected_song].song_info["title"], 1, math.min(#(song_list[menu.selected_song].song_info["title"]),10))
+            if #(song_list[menu.selected_song].song_info["title"]) > 11 then
+                name_limit = name_limit.."..."
+            end
+            love.graphics.printf(name_limit, LIGHT_FONT, 25, 300, 9999, "left", 0, 1, 1)
+
+            -- Artist
+            local name_limit = string.sub(song_list[menu.selected_song].song_info["artist"], 1, math.min(#(song_list[menu.selected_song].song_info["artist"]),10))
+            if #(song_list[menu.selected_song].song_info["artist"]) > 11 then
+                name_limit = name_limit.."..."
+            end
+            love.graphics.printf(name_limit, LIGHT_FONT, 25, 360, 9999, "left", 0, 0.5, 0.5)
+            
+        end
+
+        if menu.current_scene == "game over" then
+            local zoom = 5
+            
+            love.graphics.printf("You lose.", LIGHT_FONT, RES.x/2, RES.y/2, 9999, "left", 0, 1, 1, 100, 60)
+            love.graphics.printf("Highest streak: "..menu.last_game.highest_streak, LIGHT_FONT, RES.x/2, RES.y/2+50, 9999, "left", 0, 1, 1, 200, -20)
+            love.graphics.printf("Score: "..menu.last_game.score, LIGHT_FONT, RES.x/2, RES.y/2+90, 9999, "left", 0, 1, 1, 200, -60)
+
+            -- Album cover
+            local cover_zoom = 0.25 / (menu.song.cover:getWidth()/1080)
+            love.graphics.setColor(1,1,1,1)
+            love.graphics.draw(menu.song.cover, 25, 25, 0, cover_zoom, cover_zoom)
+            love.graphics.setColor(menu.song.average_colour:unpack())
+
+            -- Title
+            local name_limit = string.sub(song_list[menu.selected_song].song_info["title"], 1, math.min(#(song_list[menu.selected_song].song_info["title"]),10))
+            if #(song_list[menu.selected_song].song_info["title"]) > 11 then
+                name_limit = name_limit.."..."
+            end
+            love.graphics.printf(name_limit, LIGHT_FONT, 25, 300, 9999, "left", 0, 1, 1)
+
+            -- Artist
+            local name_limit = string.sub(song_list[menu.selected_song].song_info["artist"], 1, math.min(#(song_list[menu.selected_song].song_info["artist"]),10))
+            if #(song_list[menu.selected_song].song_info["artist"]) > 11 then
+                name_limit = name_limit.."..."
+            end
+            love.graphics.printf(name_limit, LIGHT_FONT, 25, 360, 9999, "left", 0, 0.5, 0.5)
+        end
     end
 
     function menu.Navigate()
@@ -123,20 +184,20 @@ function ReturnMenu()
             if #key_presses_frame > 0 then
                 for _,key in pairs(key_presses_frame) do
 
-                    if key == "left" then
+                    if key == "left" or key == "a" then
                         menu.current_scene = "settings"
                         menu.song.queueableSource:stop()
                         
                     end
 
-                    if key == "right" then
+                    if key == "right" or key == "d" then
                         menu.current_scene = "transition"
                         menu.song.queueableSource:stop()
                         menu.UpdateSelectedSong()
                         
                     end
 
-                    if key == "up" then
+                    if key == "up" or key == "w" then
                         menu.selected_song = menu.selected_song - 1
                         if menu.selected_song < 1 then
                             menu.selected_song = #song_list
@@ -146,7 +207,7 @@ function ReturnMenu()
                         menu.song.queueableSource:play()
                     end
 
-                    if key == "down" then
+                    if key == "down" or key == "s" then
                         menu.selected_song = menu.selected_song + 1
                         if menu.selected_song > #song_list then
                             menu.selected_song = 1
@@ -161,7 +222,17 @@ function ReturnMenu()
         elseif menu.current_scene == "settings" then
             if #key_presses_frame > 0 then
                 for _,key in pairs(key_presses_frame) do
-                    if key == "left" then
+                    if key == "left" or key == "a" then
+                        menu.current_scene = "main"
+                        menu.UpdateSelectedSong()
+                        menu.song.queueableSource:play()
+                    end
+                end
+            end
+        elseif menu.current_scene == "you win" or menu.current_scene == "game over" then
+            if #key_presses_frame > 0 then
+                for _,key in pairs(key_presses_frame) do
+                    if keybinds.mouse1() or keybinds.space() then
                         menu.current_scene = "main"
                         menu.UpdateSelectedSong()
                         menu.song.queueableSource:play()
