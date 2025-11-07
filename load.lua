@@ -76,17 +76,21 @@ function _G.UpdateSongList()
         table.insert(song_list, 1, {})
         song_list[1].folder_path = ("assets/songs/Alright")
         song_list[1].folder_name = ("Alright")
-        local song_info, _ = loadJSONData((song_list[1].folder_path).."/info.json")
+        local song_info, err = loadJSONData((song_list[1].folder_path).."/info.json")
+        print(err)
         song_list[1].song_info = song_info
-        local song_data, _ = loadJSONData((song_list[1].folder_path).."/level.json")
+        local song_data, err = loadJSONData((song_list[1].folder_path).."/level.json")
+        print(err)
         song_list[1].song_data = song_data
 
         table.insert(song_list, 2, {})
         song_list[2].folder_path = ("assets/songs/Gorgeous")
         song_list[2].folder_name = ("Gorgeous")
-        local song_info, _ = loadJSONData((song_list[2].folder_path).."/info.json")
+        local song_info, err = loadJSONData((song_list[2].folder_path).."/info.json")
+        print(err)
         song_list[2].song_info = song_info
-        local song_data, _ = loadJSONData((song_list[2].folder_path).."/level.json")
+        local song_data, err = loadJSONData((song_list[2].folder_path).."/level.json")
+        print(err)
         song_list[2].song_data = song_data
     end
 
@@ -103,22 +107,15 @@ end
 
 function _G.loadJSONData(filename)
     -- 1. Open the file
-    local file, err_open = io.open(filename, "r")
+    local file, err_open = love.filesystem.read(filename)
     if not file then
         return nil, "Error opening file: " .. (err_open or "unknown error")
-    end
-
-    -- 2. Read all content
-    local content, err_read = file:read("*a")
-    file:close() -- Always close the file after reading
-    if not content then
-        return nil, "Error reading file: " .. (err_read or "unknown error")
     end
 
     -- 3. Decode the JSON string
     -- We use pcall (protected call) to safely catch any errors during parsing
     -- This API (json_lib.decode) is compatible with rxi/json.lua
-    local ok, data_or_err = pcall(json.decode, content)
+    local ok, data_or_err = pcall(json.decode, file)
     if not ok then
         return nil, "JSON decode error: " .. tostring(data_or_err)
     end
