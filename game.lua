@@ -88,6 +88,8 @@ function ReturnGame(song)
 
     game.DrawAppropriateScoreDecal = function ()
 
+        love.graphics.setColor(1,1,1,1)
+
         if game.most_recent_slash == "miss" then
             return
         end
@@ -121,6 +123,8 @@ function ReturnGame(song)
                 love.graphics.draw(textures.score_displays.perfect, RES.x/2, RES.y/2, 0, 3, 3, textures.score_displays.perfect:getWidth()/2,textures.score_displays.perfect:getHeight()/2)
             end
         end
+
+        love.graphics.setColor(menu.song.average_colour:unpack())
 
     end
 

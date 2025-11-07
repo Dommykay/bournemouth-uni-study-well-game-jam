@@ -59,16 +59,37 @@ end
 function _G.UpdateSongList()
     _G.song_list = {}
     local iterator = 1
-    for line in io.lines("assets/songs/add_songs_here.txt") do
-        table.insert(song_list, iterator, {})
-        song_list[iterator].folder_path = ("assets/songs/" .. line)
-        song_list[iterator].folder_name = line
-        local song_info, _ = loadJSONData((song_list[iterator].folder_path).."/info.json")
-        song_list[iterator].song_info = song_info
-        local song_data, _ = loadJSONData((song_list[iterator].folder_path).."/level.json")
-        song_list[iterator].song_data = song_data
-        iterator = iterator + 1
+    local f = io.open("add_songs_here.txt")
+    if f ~= nil then
+        io.close(f)
+        for line in io.lines("add_songs_here.txt") do
+            table.insert(song_list, iterator, {})
+            song_list[iterator].folder_path = ("assets/songs/" .. line)
+            song_list[iterator].folder_name = line
+            local song_info, _ = loadJSONData((song_list[iterator].folder_path).."/info.json")
+            song_list[iterator].song_info = song_info
+            local song_data, _ = loadJSONData((song_list[iterator].folder_path).."/level.json")
+            song_list[iterator].song_data = song_data
+            iterator = iterator + 1
+        end
+    else
+        table.insert(song_list, 1, {})
+        song_list[1].folder_path = ("assets/songs/Alright")
+        song_list[1].folder_name = ("Alright")
+        local song_info, _ = loadJSONData((song_list[1].folder_path).."/info.json")
+        song_list[1].song_info = song_info
+        local song_data, _ = loadJSONData((song_list[1].folder_path).."/level.json")
+        song_list[1].song_data = song_data
+
+        table.insert(song_list, 2, {})
+        song_list[2].folder_path = ("assets/songs/Gorgeous")
+        song_list[2].folder_name = ("Gorgeous")
+        local song_info, _ = loadJSONData((song_list[2].folder_path).."/info.json")
+        song_list[2].song_info = song_info
+        local song_data, _ = loadJSONData((song_list[2].folder_path).."/level.json")
+        song_list[2].song_data = song_data
     end
+
 end
 
 function LoadGame(song_path)

@@ -1,6 +1,6 @@
 function love.conf(t)
-    t.console = true
-    t.window.resizable = true
+    t.console = false
+    t.window.resizable = false
     t.window.width = 1000
     t.window.height = 1000
 end

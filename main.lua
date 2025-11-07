@@ -3,8 +3,6 @@ _G.vector = require("libs.vector.vector")
 _G.colour = require("libs.vector.colour")
 _G.game_gen = require("game")
 _G.menu_gen = require("menu")
-_G.background_gen = require("background")
-_G.foreground_gen = require("foreground")
 _G.tween = require("tween")
 _G.load = require("load")
 _G.controls = require("controls")
@@ -62,7 +60,7 @@ function love.update(dt)
         end
 
         if menu.transition_finished == true then
-            if game and game.player_health <= 0 then
+            if game and game.player_health <= 0.0001 then
                 game.song.queueableSource:stop()
                 menu.current_scene = "game over"
                 menu.last_game.score = game.score
@@ -85,9 +83,6 @@ function love.draw()
         menu.Render()
     else
         game.Render()
-        love.graphics.print(game.perfect_streak, 0, 0, 0)
-        love.graphics.print(game.score, 0, 20, 0)
-        love.graphics.print(game.player_health, 0, 40, 0)
     end
 
     --love.graphics.print(math.floor(love.timer.getTime()), 0, 0, 0) --DEBUG
